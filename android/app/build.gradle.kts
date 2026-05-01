@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.macha.mediaplayer.macha_media_player"
-    compileSdk = 34
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -17,7 +17,7 @@ android {
     defaultConfig {
         applicationId = "com.macha.mediaplayer.macha_media_player"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
