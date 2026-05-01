@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    rootProject.extra["ffmpegKitPackage"] = "audio"
+    rootProject.extra["ffmpegKitVersion"] = "6.0.LTS"
+}
+
 allprojects {
     repositories {
         google()
