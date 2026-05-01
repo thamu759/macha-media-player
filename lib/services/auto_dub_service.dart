@@ -1,6 +1,7 @@
 import 'package:ffmpeg_kit_flutter_new_min_gpl/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new_min_gpl/return_code.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:io';
@@ -26,7 +27,7 @@ class AutoDubService {
       final dubbedAudioPath = await _generateVoice(transcription);
       return dubbedAudioPath;
     } catch (e) {
-      print("Error in Auto Dub: $e");
+      debugPrint("Error in Auto Dub: $e");
       return null;
     }
   }
@@ -62,7 +63,7 @@ class AutoDubService {
       );
       return response.data['text'];
     } catch (e) {
-      print("Whisper Error: $e");
+      debugPrint("Whisper Error: $e");
       return null;
     }
   }
@@ -93,7 +94,7 @@ class AutoDubService {
       await file.writeAsBytes(response.data);
       return outputPath;
     } catch (e) {
-      print("ElevenLabs Error: $e");
+      debugPrint("ElevenLabs Error: $e");
       return null;
     }
   }
