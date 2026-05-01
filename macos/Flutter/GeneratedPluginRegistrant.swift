@@ -7,7 +7,7 @@ import Foundation
 
 import audio_service
 import audio_session
-import ffmpeg_kit_flutter_audio
+import ffmpeg_kit_flutter_new_min_gpl
 import just_audio
 import package_info_plus
 import photo_manager

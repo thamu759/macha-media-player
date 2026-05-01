@@ -49,14 +49,6 @@ flutter {
     source = "../.."
 }
 
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "com.arthenica" && requested.name.startsWith("ffmpeg-kit")) {
-            useVersion("6.0.LTS")
-        }
-    }
-}
-
 dependencies {
     implementation("androidx.multidex:multidex:2.0.1")
 }
