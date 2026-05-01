@@ -31,14 +31,6 @@ android {
         }
     }
 
-    configurations.all {
-        resolutionStrategy.eachDependency {
-            if (requested.group == "com.arthenica" && requested.name.startsWith("ffmpeg-kit")) {
-                useVersion("6.0.LTS")
-            }
-        }
-    }
-
     lint {
         abortOnError = false
         checkReleaseBuilds = false
