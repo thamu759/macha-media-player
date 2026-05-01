@@ -36,6 +36,10 @@ jobs:
     - name: Build APK
       run: flutter build apk --release
 
+    - name: List APK outputs
+      if: always()
+      run: find . -name "*.apk" -type f -print
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
