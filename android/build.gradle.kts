@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
     rootProject.extra["ffmpegKitPackage"] = "audio"
-    rootProject.extra["ffmpegKitVersion"] = "6.0.LTS"
+    rootProject.extra["ffmpegKitVersion"] = "4.5.LTS"
 }
 
 allprojects {

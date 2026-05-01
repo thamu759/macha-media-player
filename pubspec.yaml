@@ -40,7 +40,7 @@ dependencies:
   just_audio: any
   audio_service: any
   dio: any
-  ffmpeg_kit_flutter_audio: any
+  ffmpeg_kit_flutter_audio: ^4.5.0-LTS
   permission_handler: any
   on_audio_query: any
   photo_manager: any
