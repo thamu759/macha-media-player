@@ -18,34 +18,40 @@ class Playlist {
       );
 }
 
-class PlaylistNotifier extends StateNotifier<List<Playlist>> {
-  PlaylistNotifier() : super([]) {
-    _loadPlaylists();
+class PlaylistNotifier extends Notifier<List<Playlist>> {
+  @override
+  List<Playlist> build() {
+    // We can't call _loadPlaylists here because it sets state
+    // Instead we return the loaded data
+    final box = Hive.box('playlists');
+    final data = box.values.toList();
+    return data.map((e) => Playlist.fromMap(e as Map)).toList();
   }
 
-  final _box = Hive.box('playlists');
-
-  void _loadPlaylists() {
-    final data = _box.values.toList();
+  void _refresh() {
+    final box = Hive.box('playlists');
+    final data = box.values.toList();
     state = data.map((e) => Playlist.fromMap(e as Map)).toList();
   }
 
   Future<void> createPlaylist(String name) async {
+    final box = Hive.box('playlists');
     final newPlaylist = Playlist(name: name, mediaPaths: []);
-    await _box.add(newPlaylist.toMap());
-    _loadPlaylists();
+    await box.add(newPlaylist.toMap());
+    _refresh();
   }
 
   Future<void> addToPlaylist(int index, String path) async {
+    final box = Hive.box('playlists');
     final playlist = state[index];
     if (!playlist.mediaPaths.contains(path)) {
       playlist.mediaPaths.add(path);
-      await _box.putAt(index, playlist.toMap());
-      _loadPlaylists();
+      await box.putAt(index, playlist.toMap());
+      _refresh();
     }
   }
 }
 
-final playlistProvider = StateNotifierProvider<PlaylistNotifier, List<Playlist>>((ref) {
+final playlistProvider = NotifierProvider<PlaylistNotifier, List<Playlist>>(() {
   return PlaylistNotifier();
 });
