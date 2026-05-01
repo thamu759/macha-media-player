@@ -3,7 +3,7 @@ buildscript {
         google()
         mavenCentral()
     }
-    rootProject.extra["ffmpegKitPackage"] = "audio"
+    rootProject.extra["ffmpegKitPackage"] = "min-gpl"
     rootProject.extra["ffmpegKitVersion"] = "6.0.LTS"
 }
 
