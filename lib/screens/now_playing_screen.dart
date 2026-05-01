@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import '../providers/audio_player_provider.dart';
+import '../services/macha_audio_handler.dart';
 
 class NowPlayingScreen extends ConsumerStatefulWidget {
   final SongModel song;
@@ -20,10 +21,9 @@ class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
   }
 
   Future<void> _initPlayer() async {
-    final player = ref.read(audioPlayerProvider);
+    final audioHandler = ref.read(audioHandlerProvider);
     try {
-      await player.setAudioSource(AudioSource.uri(Uri.parse('file://${widget.song.data}')));
-      player.play();
+      await audioHandler.playSong(widget.song);
     } catch (e) {
       debugPrint("Error loading audio source: $e");
     }
@@ -31,7 +31,7 @@ class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final player = ref.watch(audioPlayerProvider);
+    final audioHandler = ref.watch(audioHandlerProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Now Playing')),
@@ -95,7 +95,7 @@ class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
               const Spacer(),
-              _PlayerPanel(player: player),
+              _PlayerPanel(audioHandler: audioHandler),
             ],
           ),
         ),
@@ -105,9 +105,9 @@ class _NowPlayingScreenState extends ConsumerState<NowPlayingScreen> {
 }
 
 class _PlayerPanel extends StatelessWidget {
-  final AudioPlayer player;
+  final MachaAudioHandler audioHandler;
 
-  const _PlayerPanel({required this.player});
+  const _PlayerPanel({required this.audioHandler});
 
   @override
   Widget build(BuildContext context) {
@@ -120,10 +120,10 @@ class _PlayerPanel extends StatelessWidget {
       child: Column(
         children: [
           StreamBuilder<Duration>(
-            stream: player.positionStream,
+            stream: audioHandler.player.positionStream,
             builder: (context, positionSnapshot) {
               return StreamBuilder<Duration?>(
-                stream: player.durationStream,
+                stream: audioHandler.player.durationStream,
                 builder: (context, durationSnapshot) {
                   final position = positionSnapshot.data ?? Duration.zero;
                   final duration = durationSnapshot.data ?? Duration.zero;
@@ -136,7 +136,7 @@ class _PlayerPanel extends StatelessWidget {
                         value: value.toDouble(),
                         max: max.toDouble(),
                         onChanged: (nextValue) {
-                          player.seek(Duration(milliseconds: nextValue.round()));
+                          audioHandler.seek(Duration(milliseconds: nextValue.round()));
                         },
                       ),
                       Row(
@@ -154,7 +154,7 @@ class _PlayerPanel extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           StreamBuilder<PlayerState>(
-            stream: player.playerStateStream,
+            stream: audioHandler.player.playerStateStream,
             builder: (context, snapshot) {
               final playerState = snapshot.data;
               final processingState = playerState?.processingState;
@@ -182,20 +182,20 @@ class _PlayerPanel extends StatelessWidget {
                     tooltip: "Back",
                     icon: const Icon(Icons.replay_10_rounded),
                     onPressed: () {
-                      final next = player.position - const Duration(seconds: 10);
-                      player.seek(next < Duration.zero ? Duration.zero : next);
+                      final next = audioHandler.player.position - const Duration(seconds: 10);
+                      audioHandler.seek(next < Duration.zero ? Duration.zero : next);
                     },
                   ),
                   const SizedBox(width: 18),
                   FilledButton(
                     onPressed: () {
                       if (processingState == ProcessingState.completed) {
-                        player.seek(Duration.zero);
-                        player.play();
+                        audioHandler.seek(Duration.zero);
+                        audioHandler.play();
                       } else if (playing) {
-                        player.pause();
+                        audioHandler.pause();
                       } else {
-                        player.play();
+                        audioHandler.play();
                       }
                     },
                     style: FilledButton.styleFrom(
@@ -210,7 +210,7 @@ class _PlayerPanel extends StatelessWidget {
                     tooltip: "Forward",
                     icon: const Icon(Icons.forward_10_rounded),
                     onPressed: () {
-                      player.seek(player.position + const Duration(seconds: 10));
+                      audioHandler.seek(audioHandler.player.position + const Duration(seconds: 10));
                     },
                   ),
                 ],

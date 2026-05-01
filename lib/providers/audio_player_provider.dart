@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart';
+import '../services/macha_audio_handler.dart';
 
-final audioPlayerProvider = Provider<AudioPlayer>((ref) {
-  final player = AudioPlayer();
-  ref.onDispose(() => player.dispose());
-  return player;
+final audioHandlerProvider = Provider<MachaAudioHandler>((ref) {
+  return machaAudioHandler;
 });
