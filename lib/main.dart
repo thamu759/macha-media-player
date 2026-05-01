@@ -8,6 +8,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('settings');
+  await Hive.openBox('playlists');
   runApp(
     const ProviderScope(
       child: MyApp(),

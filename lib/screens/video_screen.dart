@@ -4,19 +4,44 @@ import '../core/permissions.dart';
 import '../providers/media_provider.dart';
 import 'video_player_screen.dart';
 
-class VideoScreen extends ConsumerWidget {
+class VideoScreen extends ConsumerStatefulWidget {
   const VideoScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<VideoScreen> createState() => _VideoScreenState();
+}
+
+class _VideoScreenState extends ConsumerState<VideoScreen> {
+  String _searchQuery = "";
+
+  @override
+  Widget build(BuildContext context) {
     final videoListAsync = ref.watch(videoListProvider);
 
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: TextField(
+            onChanged: (val) => setState(() => _searchQuery = val),
+            decoration: InputDecoration(
+              hintText: "Search videos...",
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: Colors.white10,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+            ),
+          ),
+        ),
+      ),
       body: videoListAsync.when(
         data: (videos) {
-          if (videos.isEmpty) {
+          final filteredVideos = videos.where((v) => (v.title ?? "").toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+          
+          if (filteredVideos.isEmpty) {
             return _PermissionEmptyState(
-              message: "Video files varala. Permission allow pannitu retry pannunga.",
+              message: _searchQuery.isEmpty ? "Video files varala. Permission allow pannitu retry pannunga." : "No results found.",
               onRetry: () => ref.invalidate(videoListProvider),
             );
           }
@@ -27,9 +52,9 @@ class VideoScreen extends ConsumerWidget {
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
-            itemCount: videos.length,
+            itemCount: filteredVideos.length,
             itemBuilder: (context, index) {
-              final video = videos[index];
+              final video = filteredVideos[index];
               return FutureBuilder<Color?>(
                 future: video.thumbnailData.then((data) => null), // Temporary placeholder for thumbnail logic
                 builder: (context, snapshot) {

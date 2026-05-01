@@ -5,26 +5,51 @@ import '../core/permissions.dart';
 import '../providers/media_provider.dart';
 import 'now_playing_screen.dart';
 
-class AudioScreen extends ConsumerWidget {
+class AudioScreen extends ConsumerStatefulWidget {
   const AudioScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AudioScreen> createState() => _AudioScreenState();
+}
+
+class _AudioScreenState extends ConsumerState<AudioScreen> {
+  String _searchQuery = "";
+
+  @override
+  Widget build(BuildContext context) {
     final audioListAsync = ref.watch(audioListProvider);
 
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: TextField(
+            onChanged: (val) => setState(() => _searchQuery = val),
+            decoration: InputDecoration(
+              hintText: "Search audio...",
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: Colors.white10,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+            ),
+          ),
+        ),
+      ),
       body: audioListAsync.when(
         data: (songs) {
-          if (songs.isEmpty) {
+          final filteredSongs = songs.where((s) => s.title.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+          
+          if (filteredSongs.isEmpty) {
             return _PermissionEmptyState(
-              message: "Audio files varala. Permission allow pannitu retry pannunga.",
+              message: _searchQuery.isEmpty ? "Audio files varala. Permission allow pannitu retry pannunga." : "No results found.",
               onRetry: () => ref.invalidate(audioListProvider),
             );
           }
           return ListView.builder(
-            itemCount: songs.length,
+            itemCount: filteredSongs.length,
             itemBuilder: (context, index) {
-              final song = songs[index];
+              final song = filteredSongs[index];
               return ListTile(
                 leading: QueryArtworkWidget(
                   id: song.id,

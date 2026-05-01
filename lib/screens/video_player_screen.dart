@@ -19,6 +19,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   
   // Dubbing State
   bool _isDubbing = false;
+  String _dubStatus = "";
   String? _dubbedAudioPath;
   final AudioPlayer _dubPlayer = AudioPlayer();
   final AutoDubService _autoDubService = AutoDubService();
@@ -73,35 +74,41 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   Future<void> _startAutoDub() async {
     if (_videoFilePath == null) return;
     
-    setState(() => _isDubbing = true);
+    setState(() {
+      _isDubbing = true;
+      _dubStatus = "Extracting Audio...";
+    });
     
-    // Pause video while dubbing
     _chewieController?.pause();
 
-    final dubbedPath = await _autoDubService.generateDubbedAudio(_videoFilePath!);
-    
-    if (dubbedPath != null) {
-      _dubbedAudioPath = dubbedPath;
-      await _dubPlayer.setFilePath(dubbedPath);
-      // Mute original video
-      _videoPlayerController!.setVolume(0.0);
+    try {
+      // 1. Extraction (Fast)
+      final dubbedPath = await _autoDubService.generateDubbedAudio(_videoFilePath!);
       
-      // Seek dub to current video position
-      await _dubPlayer.seek(_videoPlayerController!.value.position);
-      
-      // Resume video
-      _chewieController?.play();
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dubbing applied successfully!')));
+      if (dubbedPath != null) {
+        setState(() => _dubStatus = "Finalizing...");
+        _dubbedAudioPath = dubbedPath;
+        await _dubPlayer.setFilePath(dubbedPath);
+        _videoPlayerController!.setVolume(0.0);
+        await _dubPlayer.seek(_videoPlayerController!.value.position);
+        _chewieController?.play();
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI Dubbing applied successfully!')));
+        }
+      } else {
+        throw Exception("Failed to generate dub");
       }
-    } else {
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Auto Dub failed. Check API Keys.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Auto Dub failed: $e')));
       }
+    } finally {
+      setState(() {
+        _isDubbing = false;
+        _dubStatus = "";
+      });
     }
-    
-    setState(() => _isDubbing = false);
   }
 
   @override
@@ -121,14 +128,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         title: Text(widget.video.title ?? 'Video'),
         actions: [
           if (_isDubbing)
-            const Center(
+            Center(
               child: Padding(
-                padding: EdgeInsets.only(right: 16), 
-                child: SizedBox(
-                  width: 20, 
-                  height: 20, 
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.deepPurpleAccent)
-                )
+                padding: const EdgeInsets.only(right: 16), 
+                child: Row(
+                  children: [
+                    Text(_dubStatus, style: const TextStyle(fontSize: 12, color: Colors.deepPurpleAccent)),
+                    const SizedBox(width: 8),
+                    const SizedBox(
+                      width: 16, 
+                      height: 16, 
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.deepPurpleAccent)
+                    ),
+                  ],
+                ),
               )
             )
           else

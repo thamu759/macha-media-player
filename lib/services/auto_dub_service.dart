@@ -10,7 +10,7 @@ class AutoDubService {
   
   String get openAiApiKey => _box.get('openai_key', defaultValue: "");
   String get elevenLabsApiKey => _box.get('elevenlabs_key', defaultValue: "");
-  final String elevenLabsVoiceId = "pNInz6obpgDQGcFmaJcg"; // Default voice ID
+  String get elevenLabsVoiceId => _box.get('voice_id', defaultValue: "pNInz6obpgDQGcFmaJcg"); 
 
   Future<String?> generateDubbedAudio(String videoPath) async {
     try {
