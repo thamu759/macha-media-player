@@ -3,7 +3,6 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:just_audio/just_audio.dart';
-import 'dart:io';
 import '../services/auto_dub_service.dart';
 
 class VideoPlayerScreen extends StatefulWidget {

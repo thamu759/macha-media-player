@@ -6,20 +6,25 @@ class PermissionManager {
   static Future<bool> requestMediaPermissions() async {
     if (kIsWeb) return false;
 
-    if (Platform.isAndroid) {
-      // For Android 13+ (API 33+)
-      final audioStatus = await Permission.audio.request();
-      final videoStatus = await Permission.videos.request();
-      final storageStatus = await Permission.storage.request();
+    try {
+      if (Platform.isAndroid) {
+        final statuses = await [
+          Permission.audio,
+          Permission.videos,
+          Permission.storage,
+        ].request().timeout(const Duration(seconds: 10));
 
-      if (audioStatus.isGranted || videoStatus.isGranted || storageStatus.isGranted) {
-        return true;
+        return statuses.values.any((status) => status.isGranted || status.isLimited);
+      } else if (Platform.isIOS) {
+        final status = await Permission.mediaLibrary
+            .request()
+            .timeout(const Duration(seconds: 10));
+        return status.isGranted || status.isLimited;
       }
+    } catch (_) {
       return false;
-    } else if (Platform.isIOS) {
-      final status = await Permission.mediaLibrary.request();
-      return status.isGranted;
     }
+
     return false;
   }
 }

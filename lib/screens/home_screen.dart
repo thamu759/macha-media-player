@@ -24,7 +24,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _checkPermissions() async {
-    final granted = await PermissionManager.requestMediaPermissions();
+    bool granted = false;
+
+    try {
+      granted = await PermissionManager.requestMediaPermissions()
+          .timeout(const Duration(seconds: 10), onTimeout: () => false);
+    } catch (_) {
+      granted = false;
+    }
+
+    if (!mounted) return;
+
     setState(() {
       _hasPermissions = granted;
       _isCheckingPermissions = false;
@@ -41,7 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isCheckingPermissions) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
 
     if (!_hasPermissions) {
