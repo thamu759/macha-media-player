@@ -1,12 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:photo_manager/photo_manager.dart';
+import '../core/permissions.dart';
 
 final audioQueryProvider = Provider((ref) => OnAudioQuery());
 
 final audioListProvider = FutureProvider<List<SongModel>>((ref) async {
   final audioQuery = ref.read(audioQueryProvider);
-  final hasPermission = await audioQuery.checkAndRequest(retryRequest: true);
+  
+  // Use PermissionManager instead of the internal package one which is buggy
+  final hasPermission = await PermissionManager.requestMediaPermissions();
 
   if (!hasPermission) {
     return [];
