@@ -13,11 +13,28 @@ allprojects {
 }
 
 subprojects {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+    }
+
     afterEvaluate {
         if (project.hasProperty("android")) {
             val androidExt = project.extensions.findByName("android")
             if (androidExt != null) {
                 try {
+                    // Force compile options to 17
+                    val compileOptions = androidExt.javaClass.methods.find { it.name == "getCompileOptions" }?.invoke(androidExt)
+                    if (compileOptions != null) {
+                        compileOptions.javaClass.methods.find { it.name == "setSourceCompatibility" && it.parameterTypes.size == 1 }?.invoke(compileOptions, JavaVersion.VERSION_17)
+                        compileOptions.javaClass.methods.find { it.name == "setTargetCompatibility" && it.parameterTypes.size == 1 }?.invoke(compileOptions, JavaVersion.VERSION_17)
+                    }
+
                     val getNamespaceMethod = androidExt.javaClass.methods.find { it.name == "getNamespace" }
                     val setNamespaceMethod = androidExt.javaClass.methods.find { it.name == "setNamespace" && it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java }
                     
