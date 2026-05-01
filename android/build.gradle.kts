@@ -12,45 +12,12 @@ allprojects {
     }
 }
 
-val newBuildDir: Directory =
-    rootProject.layout.buildDirectory
-        .dir("../../build")
-        .get()
-rootProject.layout.buildDirectory.value(newBuildDir)
-
 subprojects {
-    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-    project.layout.buildDirectory.value(newSubprojectBuildDir)
-
-    tasks.withType<JavaCompile>().configureEach {
-        sourceCompatibility = JavaVersion.VERSION_17.toString()
-        targetCompatibility = JavaVersion.VERSION_17.toString()
-    }
-
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        }
-    }
-    
     afterEvaluate {
         if (project.hasProperty("android")) {
             val androidExt = project.extensions.findByName("android")
             if (androidExt != null) {
                 try {
-                    val compileOptions = androidExt.javaClass.methods
-                        .find { it.name == "getCompileOptions" }
-                        ?.invoke(androidExt)
-
-                    if (compileOptions != null) {
-                        compileOptions.javaClass.methods
-                            .find { it.name == "setSourceCompatibility" && it.parameterTypes.size == 1 }
-                            ?.invoke(compileOptions, JavaVersion.VERSION_17)
-                        compileOptions.javaClass.methods
-                            .find { it.name == "setTargetCompatibility" && it.parameterTypes.size == 1 }
-                            ?.invoke(compileOptions, JavaVersion.VERSION_17)
-                    }
-
                     val getNamespaceMethod = androidExt.javaClass.methods.find { it.name == "getNamespace" }
                     val setNamespaceMethod = androidExt.javaClass.methods.find { it.name == "setNamespace" && it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java }
                     
@@ -75,6 +42,7 @@ subprojects {
         }
     }
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
