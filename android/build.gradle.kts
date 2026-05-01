@@ -2,6 +2,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://artifactory.arthenica.com/artifactory/release") }
     }
     rootProject.extra["ffmpegKitPackage"] = "min-gpl"
     rootProject.extra["ffmpegKitVersion"] = "6.0.LTS"
@@ -11,6 +12,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://artifactory.arthenica.com/artifactory/release") }
     }
 }
 
