@@ -3,53 +3,30 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 
 class PermissionManager {
-  static Future<List<Permission>> get _requiredPermissions async {
-    if (Platform.isIOS) return [Permission.mediaLibrary];
-    
-    // For Android 13 (API 33) and above
+  static Future<bool> requestAudioPermission() async {
+    if (kIsWeb) return false;
     if (Platform.isAndroid) {
-      // We can't easily check API level here without another package, 
-      // but we can request both and handle the results.
-      // Newer Android needs these:
-      return [
-        Permission.audio,
-        Permission.videos,
-        Permission.photos,
-      ];
+      // Try both for compatibility across OS versions
+      final statuses = await [Permission.audio, Permission.storage].request();
+      return statuses[Permission.audio]!.isGranted || statuses[Permission.storage]!.isGranted;
     }
-    return [Permission.storage];
+    return await Permission.mediaLibrary.request().isGranted;
   }
 
-  static Future<bool> hasMediaPermissions() async {
+  static Future<bool> requestVideoPermission() async {
     if (kIsWeb) return false;
-
-    try {
-      final permissions = await _requiredPermissions;
-      for (var permission in permissions) {
-        final status = await permission.status;
-        if (status.isGranted || status.isLimited) return true;
-      }
-    } catch (_) {
-      return false;
+    if (Platform.isAndroid) {
+      final statuses = await [Permission.videos, Permission.storage].request();
+      return statuses[Permission.videos]!.isGranted || statuses[Permission.storage]!.isGranted;
     }
-    return false;
+    return await Permission.mediaLibrary.request().isGranted;
   }
 
   static Future<bool> requestMediaPermissions() async {
-    if (kIsWeb) return false;
-
-    try {
-      final permissions = await _requiredPermissions;
-      
-      // Requesting them one by one or as a map
-      Map<Permission, PermissionStatus> statuses = await permissions.request();
-      
-      // On Android 13+, 'storage' will be denied, but 'audio'/'videos' might be granted.
-      // So we check if ANY media permission is granted.
-      return statuses.values.any((status) => status.isGranted || status.isLimited);
-    } catch (_) {
-      return false;
-    }
+    // Legacy method for backward compatibility in the app
+    final audio = await requestAudioPermission();
+    final video = await requestVideoPermission();
+    return audio || video;
   }
 
   static Future<bool> openPermissionSettings() {

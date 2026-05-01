@@ -8,8 +8,8 @@ final audioQueryProvider = Provider((ref) => OnAudioQuery());
 final audioListProvider = FutureProvider<List<SongModel>>((ref) async {
   final audioQuery = ref.read(audioQueryProvider);
   
-  // Use PermissionManager instead of the internal package one which is buggy
-  final hasPermission = await PermissionManager.requestMediaPermissions();
+  // Specifically request audio permissions
+  final hasPermission = await PermissionManager.requestAudioPermission();
 
   if (!hasPermission) {
     return [];
@@ -24,8 +24,10 @@ final audioListProvider = FutureProvider<List<SongModel>>((ref) async {
 });
 
 final videoListProvider = FutureProvider<List<AssetEntity>>((ref) async {
-  final result = await PhotoManager.requestPermissionExtend();
-  if (result.isAuth) {
+  // Specifically request video permissions
+  final hasPermission = await PermissionManager.requestVideoPermission();
+  
+  if (hasPermission) {
     final albums = await PhotoManager.getAssetPathList(type: RequestType.video);
     if (albums.isNotEmpty) {
       final recentAlbum = albums.first;
