@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/permissions.dart';
 import '../providers/media_provider.dart';
 import 'video_player_screen.dart';
 
@@ -14,7 +15,10 @@ class VideoScreen extends ConsumerWidget {
       body: videoListAsync.when(
         data: (videos) {
           if (videos.isEmpty) {
-            return const Center(child: Text("No Video Files Found"));
+            return _PermissionEmptyState(
+              message: "Video files varala. Permission allow pannitu retry pannunga.",
+              onRetry: () => ref.invalidate(videoListProvider),
+            );
           }
           return GridView.builder(
             padding: const EdgeInsets.all(8),
@@ -65,7 +69,44 @@ class VideoScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+        error: (err, stack) => _PermissionEmptyState(
+          message: 'Video load aagala: $err',
+          onRetry: () => ref.invalidate(videoListProvider),
+        ),
+      ),
+    );
+  }
+}
+
+class _PermissionEmptyState extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _PermissionEmptyState({
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text("Retry"),
+            ),
+            TextButton(
+              onPressed: PermissionManager.openPermissionSettings,
+              child: const Text("Open Settings"),
+            ),
+          ],
+        ),
       ),
     );
   }

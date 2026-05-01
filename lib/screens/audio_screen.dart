@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import '../core/permissions.dart';
 import '../providers/media_provider.dart';
 import 'now_playing_screen.dart';
 
@@ -15,7 +16,10 @@ class AudioScreen extends ConsumerWidget {
       body: audioListAsync.when(
         data: (songs) {
           if (songs.isEmpty) {
-            return const Center(child: Text("No Audio Files Found"));
+            return _PermissionEmptyState(
+              message: "Audio files varala. Permission allow pannitu retry pannunga.",
+              onRetry: () => ref.invalidate(audioListProvider),
+            );
           }
           return ListView.builder(
             itemCount: songs.length,
@@ -37,7 +41,44 @@ class AudioScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+        error: (err, stack) => _PermissionEmptyState(
+          message: 'Audio load aagala: $err',
+          onRetry: () => ref.invalidate(audioListProvider),
+        ),
+      ),
+    );
+  }
+}
+
+class _PermissionEmptyState extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _PermissionEmptyState({
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text("Retry"),
+            ),
+            TextButton(
+              onPressed: PermissionManager.openPermissionSettings,
+              child: const Text("Open Settings"),
+            ),
+          ],
+        ),
       ),
     );
   }

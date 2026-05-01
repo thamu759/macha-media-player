@@ -6,6 +6,12 @@ final audioQueryProvider = Provider((ref) => OnAudioQuery());
 
 final audioListProvider = FutureProvider<List<SongModel>>((ref) async {
   final audioQuery = ref.read(audioQueryProvider);
+  final hasPermission = await audioQuery.checkAndRequest(retryRequest: true);
+
+  if (!hasPermission) {
+    return [];
+  }
+
   return await audioQuery.querySongs(
     sortType: null,
     orderType: OrderType.ASC_OR_SMALLER,
